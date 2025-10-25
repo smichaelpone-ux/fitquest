@@ -200,6 +200,9 @@
         .round-boxes {
             display: flex;
             gap: 6px;
+            flex-wrap: wrap;
+            max-width: 250px;
+            justify-content: center;
         }
 
         .round-box {
@@ -209,6 +212,7 @@
             border-radius: 4px;
             background: transparent;
             transition: all 0.3s ease;
+            flex-shrink: 0;
         }
 
         .round-box.completed {

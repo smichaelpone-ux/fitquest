@@ -249,7 +249,7 @@
             background: rgba(245, 245, 220, 0.05);
             border: 2px solid #14b8a6;
             border-radius: 15px;
-            padding: 20px;
+            padding: 20px 15px;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
@@ -257,7 +257,7 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            min-height: 150px;
+            min-height: 180px;
             aspect-ratio: 1;
         }
 
@@ -278,6 +278,18 @@
             color: #f5f5dc;
             font-size: 0.85em;
             line-height: 1.3;
+        }
+
+        .muscle-group-label {
+            background: #f5f5dc;
+            color: #1a1a1a;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: inline-block;
+            text-transform: capitalize;
         }
 
         .vs-divider {
@@ -320,11 +332,52 @@
             font-weight: 600;
         }
 
+        .exercise-name-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
         .exercise-name {
             font-size: 1.3em;
             color: #14b8a6;
-            margin: 20px 0;
             font-weight: 600;
+            margin: 0;
+        }
+
+        .exercise-name-container .muscle-group-label {
+            margin: 0;
+        }
+
+        .rest-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .rest-btn {
+            padding: 12px 24px;
+            border: 2px solid #14b8a6;
+            border-radius: 10px;
+            background: rgba(20, 184, 166, 0.1);
+            color: #f5f5dc;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .rest-btn:hover {
+            background: rgba(20, 184, 166, 0.3);
+            border-color: #f5f5dc;
+            transform: translateY(-2px);
+        }
+
+        .rest-btn:active {
+            transform: translateY(0);
         }
 
         .exercise-demo {
@@ -477,7 +530,7 @@
         <!-- Logo -->
         <div class="logo">
             <h1>💪 FitQuest</h1>
-            <div class="logo-tagline">Your Easy and Quick Transformation</div>
+            <div class="logo-tagline">Your Day. Your Quest. 20 Minutes Max.</div>
         </div>
 
         <!-- Music Toggle -->
@@ -538,18 +591,22 @@
             </div>
             <div class="exercise-choices">
                 <div class="exercise-card" id="choice1">
+                    <div class="muscle-group-label" id="muscle1"></div>
                     <img id="img1" src="" alt="Exercise">
                     <h3 id="name1"></h3>
                 </div>
                 <div class="exercise-card" id="choice2">
+                    <div class="muscle-group-label" id="muscle2"></div>
                     <img id="img2" src="" alt="Exercise">
                     <h3 id="name2"></h3>
                 </div>
                 <div class="exercise-card" id="choice3">
+                    <div class="muscle-group-label" id="muscle3"></div>
                     <img id="img3" src="" alt="Exercise">
                     <h3 id="name3"></h3>
                 </div>
                 <div class="exercise-card" id="choice4">
+                    <div class="muscle-group-label" id="muscle4"></div>
                     <img id="img4" src="" alt="Exercise">
                     <h3 id="name4"></h3>
                 </div>
@@ -559,11 +616,22 @@
         <!-- Workout Screen -->
         <div class="screen" id="workoutScreen">
             <div class="workout-content">
+                <div class="round-indicator" style="margin-bottom: 15px;">
+                    <span class="round-label">Round <span id="workoutCurrentRound">1</span> of <span id="workoutTotalRounds">5</span></span>
+                    <div class="round-boxes" id="workoutRoundBoxes"></div>
+                </div>
                 <div class="phase-label" id="phaseLabel">WORKOUT</div>
                 <div class="timer-circle">
                     <div class="timer-number" id="timerNumber">60</div>
                 </div>
-                <div class="exercise-name" id="currentExerciseName"></div>
+                <div class="exercise-name-container">
+                    <div class="muscle-group-label" id="workoutMuscleGroup"></div>
+                    <div class="exercise-name" id="currentExerciseName"></div>
+                </div>
+                <div class="rest-controls" id="restControls" style="display: none;">
+                    <button class="rest-btn" id="pauseBtn">⏸️ Pause</button>
+                    <button class="rest-btn" id="skipRestBtn">⏭️ Continue</button>
+                </div>
                 <div class="exercise-demo" id="exerciseDemo"></div>
             </div>
         </div>
@@ -573,7 +641,7 @@
             <div class="completion-content">
                 <div class="celebration-icon">🎉</div>
                 <h2>Incredible Work!</h2>
-                <p>You've completed your 10-minute FitQuest workout!</p>
+                <p id="completionMessage">You've completed your FitQuest workout!</p>
                 <p>Every rep brings you closer to your goals.</p>
                 <p>Remember: Progress is progress, no matter how small.</p>
                 <p style="color: #14b8a6; font-weight: 600;">Keep this momentum going tomorrow! 💪</p>
@@ -1097,7 +1165,7 @@
             currentRound: 0,
             totalRounds: 5,
             selectedExercise: null,
-            workoutPhase: 'work', // 'work' or 'rest'
+            workoutPhase: 'prepare', // 'prepare', 'work' or 'rest'
             musicEnabled: true,
             usedExercises: [], // Track exercises already done
             muscleGroupCount: {} // Track how many times each muscle group has been used
@@ -1370,6 +1438,12 @@
             document.getElementById('name3').textContent = ex3.name;
             document.getElementById('name4').textContent = ex4.name;
 
+            // Set muscle group labels
+            document.getElementById('muscle1').textContent = getMuscleGroup(ex1.name);
+            document.getElementById('muscle2').textContent = getMuscleGroup(ex2.name);
+            document.getElementById('muscle3').textContent = getMuscleGroup(ex3.name);
+            document.getElementById('muscle4').textContent = getMuscleGroup(ex4.name);
+
             // Choice countdown
             let timeLeft = 8;
             document.getElementById('choiceTimer').textContent = timeLeft;
@@ -1410,7 +1484,7 @@
 
         function startExercise(exercise) {
             state.selectedExercise = exercise;
-            state.workoutPhase = 'work';
+            state.workoutPhase = 'prepare'; // Start with prepare phase
             
             // Add to used exercises list
             state.usedExercises.push(exercise);
@@ -1420,15 +1494,66 @@
         }
 
         function runWorkoutTimer() {
-            const duration = state.workoutPhase === 'work' ? 45 : 75; // 45 sec work, 75 sec rest
+            // Set duration based on phase: 15 sec prepare, 45 sec work, 60 sec rest
+            let duration;
+            if (state.workoutPhase === 'prepare') {
+                duration = 15;
+            } else if (state.workoutPhase === 'work') {
+                duration = 45;
+            } else {
+                duration = 60;
+            }
+            
             let timeLeft = duration;
 
-            document.getElementById('phaseLabel').textContent = state.workoutPhase === 'work' ? 'WORKOUT 💪' : 'REST 😌';
+            // Update phase label
+            let phaseText = '';
+            if (state.workoutPhase === 'prepare') {
+                phaseText = 'GET READY 🔥';
+            } else if (state.workoutPhase === 'work') {
+                phaseText = 'WORKOUT 💪';
+            } else {
+                phaseText = 'REST 😌';
+            }
+            document.getElementById('phaseLabel').textContent = phaseText;
             document.getElementById('timerNumber').textContent = timeLeft;
-            document.getElementById('currentExerciseName').textContent = state.workoutPhase === 'work' ? state.selectedExercise.name : 'Take a breather!';
+            
+            // Update muscle group label and exercise name
+            if (state.workoutPhase === 'rest') {
+                document.getElementById('workoutMuscleGroup').style.display = 'none';
+                document.getElementById('currentExerciseName').textContent = 'Take a breather!';
+            } else {
+                const muscleGroup = getMuscleGroup(state.selectedExercise.name);
+                document.getElementById('workoutMuscleGroup').textContent = muscleGroup;
+                document.getElementById('workoutMuscleGroup').style.display = 'inline-block';
+                document.getElementById('currentExerciseName').textContent = state.selectedExercise.name;
+            }
 
-            // Show exercise demo during work phase
-            if (state.workoutPhase === 'work') {
+            // Update round indicator on workout screen
+            document.getElementById('workoutCurrentRound').textContent = state.currentRound + 1;
+            document.getElementById('workoutTotalRounds').textContent = state.totalRounds;
+            
+            // Render round boxes on workout screen
+            const workoutRoundBoxesContainer = document.getElementById('workoutRoundBoxes');
+            workoutRoundBoxesContainer.innerHTML = '';
+            for (let i = 0; i < state.totalRounds; i++) {
+                const box = document.createElement('div');
+                box.className = 'round-box';
+                if (i <= state.currentRound) {
+                    box.classList.add('completed');
+                }
+                workoutRoundBoxesContainer.appendChild(box);
+            }
+
+            // Show/hide rest controls
+            if (state.workoutPhase === 'rest') {
+                document.getElementById('restControls').style.display = 'flex';
+            } else {
+                document.getElementById('restControls').style.display = 'none';
+            }
+
+            // Show exercise demo during prepare and work phases
+            if (state.workoutPhase === 'prepare' || state.workoutPhase === 'work') {
                 // Create instruction steps
                 const instructionDiv = document.createElement('div');
                 instructionDiv.className = 'instruction-steps';
@@ -1462,7 +1587,9 @@
                 playBeep(440, 0.1);
                 
                 // Voice announcement
-                if (state.workoutPhase === 'work') {
+                if (state.workoutPhase === 'prepare') {
+                    speak('Get ready!');
+                } else if (state.workoutPhase === 'work') {
                     speak('Start!');
                     playWorkoutMusic();
                 } else {
@@ -1471,44 +1598,82 @@
                 }
             }
 
+            let isPaused = false;
             const timerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timerNumber').textContent = timeLeft;
+                if (!isPaused) {
+                    timeLeft--;
+                    document.getElementById('timerNumber').textContent = timeLeft;
 
-                // Countdown beeps in last 3 seconds
-                if (timeLeft <= 3 && timeLeft > 0 && state.musicEnabled) {
-                    playBeep(880, 0.1);
-                    speak(timeLeft.toString());
-                }
+                    // Countdown beeps in last 3 seconds
+                    if (timeLeft <= 3 && timeLeft > 0 && state.musicEnabled) {
+                        playBeep(880, 0.1);
+                        speak(timeLeft.toString());
+                    }
 
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    stopWorkoutMusic();
-                    
-                    if (state.workoutPhase === 'work') {
-                        // Check if this was the last exercise
-                        if (state.currentRound >= state.totalRounds - 1) {
-                            // Last exercise completed - go straight to completion screen
-                            switchScreen('completion');
-                            if (state.musicEnabled) {
-                                playBeep(660, 0.5);
-                                speak('Workout complete! Great job!');
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        stopWorkoutMusic();
+                        
+                        if (state.workoutPhase === 'prepare') {
+                            // After prepare phase, start work phase
+                            state.workoutPhase = 'work';
+                            runWorkoutTimer();
+                        } else if (state.workoutPhase === 'work') {
+                            // Check if this was the last exercise
+                            if (state.currentRound >= state.totalRounds - 1) {
+                                // Last exercise completed - go straight to completion screen
+                                document.getElementById('completionMessage').textContent = 
+                                    `You've completed your ${state.duration}-minute FitQuest workout!`;
+                                switchScreen('completion');
+                                if (state.musicEnabled) {
+                                    playBeep(660, 0.5);
+                                    speak('Workout complete! Great job!');
+                                }
+                            } else {
+                                // Not the last exercise - switch to rest
+                                state.workoutPhase = 'rest';
+                                runWorkoutTimer();
                             }
                         } else {
-                            // Not the last exercise - switch to rest
-                            state.workoutPhase = 'rest';
-                            runWorkoutTimer();
+                            // Move to next round after rest
+                            state.currentRound++;
+                            
+                            // Next exercise choice
+                            switchScreen('choice');
+                            showExerciseChoice();
                         }
-                    } else {
-                        // Move to next round after rest
-                        state.currentRound++;
-                        
-                        // Next exercise choice
-                        switchScreen('choice');
-                        showExerciseChoice();
                     }
                 }
             }, 1000);
+
+            // Pause button functionality (only during rest)
+            const pauseBtn = document.getElementById('pauseBtn');
+            pauseBtn.onclick = () => {
+                isPaused = !isPaused;
+                if (isPaused) {
+                    pauseBtn.innerHTML = '▶️ Resume';
+                    stopWorkoutMusic();
+                } else {
+                    pauseBtn.innerHTML = '⏸️ Pause';
+                    if (state.musicEnabled) {
+                        playRestMusic();
+                    }
+                }
+            };
+
+            // Skip rest button functionality
+            const skipRestBtn = document.getElementById('skipRestBtn');
+            skipRestBtn.onclick = () => {
+                clearInterval(timerInterval);
+                stopWorkoutMusic();
+                
+                // Move to next round
+                state.currentRound++;
+                
+                // Next exercise choice
+                switchScreen('choice');
+                showExerciseChoice();
+            };
         }
 
         function playBeep(frequency, duration) {

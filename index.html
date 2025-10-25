@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitQuest - Your 10-Min Workout</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d4a4a 100%);
+            color: #f5f5dc;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Logo */
+        .logo {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .logo h1 {
+            font-size: 2.5em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #14b8a6, #5eead4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(20, 184, 166, 0.3);
+            letter-spacing: 2px;
+        }
+
+        .logo-tagline {
+            color: #f5f5dc;
+            font-size: 0.9em;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+
+        /* Screen transitions */
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Setup Screen */
+        .setup-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #14b8a6;
+            font-weight: 600;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .option-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 15px 20px;
+            background: rgba(20, 184, 166, 0.1);
+            border: 2px solid #14b8a6;
+            border-radius: 12px;
+            color: #f5f5dc;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option-btn:hover {
+            background: rgba(20, 184, 166, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .option-btn.selected {
+            background: #14b8a6;
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+            border: none;
+            border-radius: 12px;
+            color: #1a1a1a;
+            font-size: 1.2em;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(20, 184, 166, 0.4);
+        }
+
+        /* Choice Screen */
+        .choice-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .choice-header h2 {
+            color: #14b8a6;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .progress-info {
+            color: #f5f5dc;
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+
+        .countdown-bar-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(20, 184, 166, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .countdown-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #14b8a6, #5eead4);
+            transition: width 0.1s linear;
+        }
+
+        .exercise-choices {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            flex: 1;
+            align-content: center;
+        }
+
+        .exercise-card {
+            background: rgba(245, 245, 220, 0.05);
+            border: 2px solid #14b8a6;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 150px;
+            aspect-ratio: 1;
+        }
+
+        .exercise-card:hover {
+            transform: scale(1.05);
+            background: rgba(20, 184, 166, 0.15);
+            box-shadow: 0 10px 30px rgba(20, 184, 166, 0.3);
+        }
+
+        .exercise-card img {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 10px;
+        }
+
+        .exercise-card h3 {
+            color: #f5f5dc;
+            font-size: 0.85em;
+            line-height: 1.3;
+        }
+
+        .vs-divider {
+            display: none;
+        }
+
+        /* Workout Screen */
+        .workout-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .timer-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.2), rgba(94, 234, 212, 0.2));
+            border: 6px solid #14b8a6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 30px 0;
+            position: relative;
+        }
+
+        .timer-number {
+            font-size: 4em;
+            font-weight: 700;
+            color: #14b8a6;
+        }
+
+        .phase-label {
+            font-size: 1.5em;
+            color: #f5f5dc;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .exercise-name {
+            font-size: 1.3em;
+            color: #14b8a6;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+
+        .exercise-demo {
+            margin: 20px 0;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .exercise-demo img {
+            max-width: 80px;
+            max-height: 80px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .instruction-steps {
+            background: rgba(20, 184, 166, 0.1);
+            border: 1px solid rgba(20, 184, 166, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .instruction-steps ol {
+            margin: 0;
+            padding-left: 20px;
+            list-style-position: outside;
+        }
+
+        .instruction-steps li {
+            color: #f5f5dc;
+            font-size: 0.85em;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .instruction-steps li:last-child {
+            margin-bottom: 0;
+        }
+
+        .exercise-tip {
+            background: rgba(245, 245, 220, 0.1);
+            border-left: 3px solid #14b8a6;
+            padding: 12px 15px;
+            margin-top: 15px;
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .exercise-tip strong {
+            color: #14b8a6;
+            font-size: 0.9em;
+        }
+
+        .exercise-tip p {
+            color: #f5f5dc;
+            font-size: 0.85em;
+            margin: 5px 0 0 0;
+            line-height: 1.5;
+            font-style: italic;
+        }
+
+        /* Completion Screen */
+        .completion-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .celebration-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .completion-content h2 {
+            font-size: 2em;
+            color: #14b8a6;
+            margin-bottom: 20px;
+        }
+
+        .completion-content p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .restart-btn {
+            width: 80%;
+            padding: 18px;
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+            border: none;
+            border-radius: 12px;
+            color: #1a1a1a;
+            font-size: 1.2em;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(20, 184, 166, 0.4);
+        }
+
+        /* Music control */
+        .music-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(20, 184, 166, 0.3);
+            border: 2px solid #14b8a6;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .music-toggle:hover {
+            background: rgba(20, 184, 166, 0.5);
+            transform: scale(1.1);
+        }
+
+        .music-toggle.muted {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo -->
+        <div class="logo">
+            <h1>💪 FitQuest</h1>
+            <div class="logo-tagline">Your 10-Minute Transformation</div>
+        </div>
+
+        <!-- Music Toggle -->
+        <div class="music-toggle" id="musicToggle" title="Toggle Music">
+            🔊
+        </div>
+
+        <!-- Setup Screen -->
+        <div class="screen active" id="setupScreen">
+            <div class="setup-content">
+                <div class="input-group">
+                    <label>What body parts to train?</label>
+                    <div class="button-group">
+                        <button class="option-btn" data-body="upper">Upper Body</button>
+                        <button class="option-btn" data-body="lower">Lower Body</button>
+                        <button class="option-btn" data-body="overall">Overall Body</button>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Equipment available?</label>
+                    <div class="button-group">
+                        <button class="option-btn" data-equipment="dumbbell">Dumbbell</button>
+                        <button class="option-btn" data-equipment="bodyweight">Bodyweight</button>
+                    </div>
+                </div>
+
+                <button class="start-btn" id="startBtn">START WORKOUT 🔥</button>
+            </div>
+        </div>
+
+        <!-- Choice Screen -->
+        <div class="screen" id="choiceScreen">
+            <div class="choice-header">
+                <h2>Choose Your Exercise</h2>
+                <p class="progress-info">Exercise <span id="currentExercise">1</span> of <span id="totalExercises">5</span></p>
+                <div class="countdown-bar-container">
+                    <div class="countdown-bar" id="countdownBar"></div>
+                </div>
+                <p style="font-size: 0.85em; opacity: 0.7;">Auto-select in <span id="choiceTimer">8</span>s</p>
+            </div>
+            <div class="exercise-choices">
+                <div class="exercise-card" id="choice1">
+                    <img id="img1" src="" alt="Exercise">
+                    <h3 id="name1"></h3>
+                </div>
+                <div class="exercise-card" id="choice2">
+                    <img id="img2" src="" alt="Exercise">
+                    <h3 id="name2"></h3>
+                </div>
+                <div class="exercise-card" id="choice3">
+                    <img id="img3" src="" alt="Exercise">
+                    <h3 id="name3"></h3>
+                </div>
+                <div class="exercise-card" id="choice4">
+                    <img id="img4" src="" alt="Exercise">
+                    <h3 id="name4"></h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workout Screen -->
+        <div class="screen" id="workoutScreen">
+            <div class="workout-content">
+                <div class="phase-label" id="phaseLabel">WORKOUT</div>
+                <div class="timer-circle">
+                    <div class="timer-number" id="timerNumber">60</div>
+                </div>
+                <div class="exercise-name" id="currentExerciseName"></div>
+                <div class="exercise-demo" id="exerciseDemo"></div>
+            </div>
+        </div>
+
+        <!-- Completion Screen -->
+        <div class="screen" id="completionScreen">
+            <div class="completion-content">
+                <div class="celebration-icon">🎉</div>
+                <h2>Incredible Work!</h2>
+                <p>You've completed your 10-minute FitQuest workout!</p>
+                <p>Every rep brings you closer to your goals.</p>
+                <p>Remember: Progress is progress, no matter how small.</p>
+                <p style="color: #14b8a6; font-weight: 600;">Keep this momentum going tomorrow! 💪</p>
+                <button class="restart-btn" id="restartBtn">START NEW WORKOUT</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Exercise Database
+        const exercises = {
+            upper: {
+                dumbbell: [
+                    { 
+                        name: "Side Laterals to Front Raise", 
+                        image: "shoulder-lateral-raise",
+                        steps: ["Stand with feet shoulder-width apart", "Hold dumbbells at sides with palms facing in", "Raise arms out to sides until parallel to ground", "Lower and then raise arms forward to shoulder height", "Return to starting position"],
+                        tip: "Keep elbows slightly bent and core engaged throughout the movement"
+                    },
+                    { 
+                        name: "Standing Dumbbell Press", 
+                        image: "shoulder-press",
+                        steps: ["Stand with feet hip-width apart", "Hold dumbbells at shoulder height, palms forward", "Press weights overhead until arms fully extend", "Lower dumbbells back to shoulder level", "Repeat with controlled motion"],
+                        tip: "Don't arch your back - keep your core tight and pressed forward"
+                    },
+                    { 
+                        name: "Dumbbell One-Arm Overhead", 
+                        image: "shoulder-overhead",
+                        steps: ["Stand tall holding one dumbbell", "Start with weight at shoulder height", "Press dumbbell straight overhead", "Fully extend arm at the top", "Lower with control and switch arms"],
+                        tip: "Stabilize your core to prevent leaning to one side"
+                    },
+                    { 
+                        name: "Dumbbell Alternate Bicep Curl", 
+                        image: "bicep-curl",
+                        steps: ["Stand with dumbbells at sides, palms forward", "Curl one dumbbell up to shoulder", "Keep upper arm stationary", "Lower and repeat with other arm", "Alternate sides continuously"],
+                        tip: "No swinging - use only your biceps to lift the weight"
+                    },
+                    { 
+                        name: "EZ-Bar Curl", 
+                        image: "ez-curl",
+                        steps: ["Grip EZ-bar with underhand grip", "Stand with feet shoulder-width apart", "Curl bar up toward chest", "Squeeze biceps at the top", "Lower bar with control"],
+                        tip: "Keep elbows close to your body throughout the movement"
+                    },
+                    { 
+                        name: "Standing Dumbbell Triceps Extension", 
+                        image: "tricep-extension",
+                        steps: ["Hold dumbbell overhead with both hands", "Keep upper arms close to head", "Lower weight behind head by bending elbows", "Extend arms back to starting position", "Keep elbows pointed forward"],
+                        tip: "Only your forearms should move - lock your upper arms in place"
+                    },
+                    { 
+                        name: "Incline Hammer Curl", 
+                        image: "hammer-curl",
+                        steps: ["Sit on incline bench with dumbbells", "Let arms hang with palms facing each other", "Curl weights up keeping palms neutral", "Squeeze at the top", "Lower with control"],
+                        tip: "The incline increases range of motion for better muscle stretch"
+                    },
+                    { 
+                        name: "Barbell Bench Press", 
+                        image: "bench-press",
+                        steps: ["Lie on bench, feet flat on floor", "Grip bar slightly wider than shoulders", "Lower bar to mid-chest", "Press bar up until arms extend", "Keep shoulder blades retracted"],
+                        tip: "Touch your chest lightly - don't bounce the bar"
+                    },
+                    { 
+                        name: "Flat Bench Dumbbell Press", 
+                        image: "dumbbell-press",
+                        steps: ["Lie on bench with dumbbells at chest", "Press weights up until arms extend", "Dumbbells should meet at top", "Lower with control to chest level", "Maintain stable shoulder position"],
+                        tip: "Dumbbells allow greater range of motion than barbells"
+                    },
+                    { 
+                        name: "Incline Dumbbell Press", 
+                        image: "incline-press",
+                        steps: ["Set bench to 30-45 degree incline", "Start with dumbbells at upper chest", "Press weights up and slightly together", "Fully extend arms at top", "Lower to starting position"],
+                        tip: "Targets upper chest - don't set incline too steep"
+                    }
+                ],
+                bodyweight: [
+                    { 
+                        name: "Dips Chest", 
+                        image: "dips",
+                        steps: ["Grip parallel bars and lift body up", "Lean torso forward slightly", "Lower body by bending elbows", "Go down until shoulders level with elbows", "Push back up to starting position"],
+                        tip: "Lean forward to target chest, stay upright for triceps"
+                    },
+                    { 
+                        name: "Incline Push-Up", 
+                        image: "incline-pushup",
+                        steps: ["Place hands on elevated surface", "Body straight from head to heels", "Lower chest toward surface", "Keep elbows at 45-degree angle", "Push back to starting position"],
+                        tip: "Great for beginners - higher surface = easier movement"
+                    },
+                    { 
+                        name: "Decline Push-Up", 
+                        image: "decline-pushup",
+                        steps: ["Place feet on elevated surface", "Hands on ground shoulder-width apart", "Keep body straight", "Lower chest to ground", "Push back up powerfully"],
+                        tip: "More challenging than regular pushups - emphasizes upper chest"
+                    },
+                    { 
+                        name: "Punches", 
+                        image: "punches",
+                        steps: ["Stand in fighting stance", "Keep fists at chin level", "Extend one arm forward quickly", "Rotate hips with each punch", "Alternate arms rapidly"],
+                        tip: "Speed and snap matter more than power - stay light on your feet"
+                    },
+                    { 
+                        name: "Mountain Climbers", 
+                        image: "mountain-climbers",
+                        steps: ["Start in plank position", "Drive one knee toward chest", "Quickly switch legs", "Keep hips level", "Maintain fast pace"],
+                        tip: "It's a cardio move - focus on speed while maintaining form"
+                    }
+                ]
+            },
+            lower: {
+                dumbbell: [
+                    { 
+                        name: "Barbell Full Squat", 
+                        image: "squat",
+                        steps: ["Bar on upper back, feet shoulder-width", "Break at hips and knees simultaneously", "Descend until thighs below parallel", "Drive through heels to stand", "Keep chest up throughout"],
+                        tip: "Knees should track over toes - don't let them cave inward"
+                    },
+                    { 
+                        name: "Leg Press", 
+                        image: "leg-press",
+                        steps: ["Sit in machine, feet on platform", "Lower platform by bending knees", "Go down until knees at 90 degrees", "Push through heels to extend legs", "Don't lock knees at top"],
+                        tip: "Keep lower back pressed against the pad throughout"
+                    },
+                    { 
+                        name: "Lying Leg Curls", 
+                        image: "leg-curl",
+                        steps: ["Lie face down on leg curl machine", "Hook ankles under padded lever", "Curl legs up toward glutes", "Squeeze hamstrings at top", "Lower with control"],
+                        tip: "Don't lift hips off the pad - isolate your hamstrings"
+                    },
+                    { 
+                        name: "Standing Barbell Calf Raise", 
+                        image: "calf-raise",
+                        steps: ["Stand with bar on upper back", "Rise up onto balls of feet", "Go as high as possible", "Hold briefly at top", "Lower heels below platform level"],
+                        tip: "Full range of motion is key - stretch at bottom, squeeze at top"
+                    }
+                ],
+                bodyweight: [
+                    { 
+                        name: "Bodyweight Squats", 
+                        image: "bodyweight-squat",
+                        steps: ["Stand with feet shoulder-width apart", "Extend arms forward for balance", "Lower hips back and down", "Keep knees behind toes", "Stand back up"],
+                        tip: "Imagine sitting back into a chair - chest stays up"
+                    },
+                    { 
+                        name: "High Knees", 
+                        image: "high-knees",
+                        steps: ["Stand tall with feet hip-width", "Drive one knee up toward chest", "Quickly switch to other leg", "Pump arms in running motion", "Maintain rapid pace"],
+                        tip: "Land softly on balls of feet - this is cardio, keep it fast!"
+                    },
+                    { 
+                        name: "Chair Dips", 
+                        image: "chair-dips",
+                        steps: ["Sit on edge of chair, hands beside hips", "Slide hips off seat", "Lower body by bending elbows", "Go down until elbows at 90 degrees", "Press back up"],
+                        tip: "Keep elbows pointing back, not flaring to sides"
+                    },
+                    { 
+                        name: "Low Stance Jacks", 
+                        image: "low-jacks",
+                        steps: ["Start in low squat position", "Jump feet out wide", "Jump feet back together", "Stay low throughout", "Move quickly"],
+                        tip: "Burn those quads - don't stand up between reps!"
+                    }
+                ]
+            },
+            overall: {
+                dumbbell: [
+                    { 
+                        name: "Clean and Press", 
+                        image: "clean-press",
+                        steps: ["Start with bar at shins", "Explosively pull bar to shoulders", "Catch in front rack position", "Dip slightly then press overhead", "Lower bar to shoulders then ground"],
+                        tip: "This is a power move - use your legs to generate force"
+                    },
+                    { 
+                        name: "Dumbbell V-Sit Cross Jab", 
+                        image: "vsit-jab",
+                        steps: ["Sit in V-position, legs elevated", "Hold dumbbells at chest", "Punch across body with one arm", "Alternate arms while holding V-sit", "Keep core engaged"],
+                        tip: "Core killer - keep those legs up the entire time!"
+                    },
+                    { 
+                        name: "Farmer Walk", 
+                        image: "farmer-walk",
+                        steps: ["Pick up heavy dumbbells/weights", "Stand tall with weights at sides", "Walk forward with controlled steps", "Keep shoulders back and core tight", "Maintain good posture"],
+                        tip: "Grip strength and core endurance - go heavy and walk far"
+                    },
+                    { 
+                        name: "Barbell Glute Bridge", 
+                        image: "glute-bridge",
+                        steps: ["Lie on back with bar over hips", "Feet flat, knees bent", "Drive through heels to lift hips", "Squeeze glutes at top", "Lower hips back down"],
+                        tip: "Push through your heels and squeeze your glutes hard at the top"
+                    }
+                ],
+                bodyweight: [
+                    { 
+                        name: "Burpees", 
+                        image: "burpees",
+                        steps: ["Start standing", "Drop into squat, hands on ground", "Kick feet back to plank", "Do a push-up", "Jump feet to hands and explode up"],
+                        tip: "The ultimate full-body cardio - pace yourself but keep moving!"
+                    },
+                    { 
+                        name: "Mountain Climbers", 
+                        image: "mountain-climbers",
+                        steps: ["Start in plank position", "Drive one knee toward chest", "Quickly switch legs", "Keep hips level", "Maintain fast pace"],
+                        tip: "Speed is key - imagine running in place horizontally"
+                    },
+                    { 
+                        name: "High Knees", 
+                        image: "high-knees",
+                        steps: ["Stand tall with feet hip-width", "Drive one knee up toward chest", "Quickly switch to other leg", "Pump arms in running motion", "Maintain rapid pace"],
+                        tip: "Get those knees high - aim for hip level with each rep"
+                    },
+                    { 
+                        name: "Toe Crunches", 
+                        image: "toe-crunch",
+                        steps: ["Lie on back, legs straight up", "Reach hands toward toes", "Lift shoulder blades off ground", "Touch toes or shins", "Lower with control"],
+                        tip: "Exhale as you crunch up - really squeeze those abs"
+                    },
+                    { 
+                        name: "Abdominal Crunch", 
+                        image: "ab-crunch",
+                        steps: ["Lie on back, knees bent, feet flat", "Place hands behind head", "Lift shoulder blades off ground", "Contract abs at top", "Lower back down slowly"],
+                        tip: "Don't pull on your neck - let your abs do all the work"
+                    },
+                    { 
+                        name: "Superman", 
+                        image: "superman",
+                        steps: ["Lie face down, arms extended forward", "Simultaneously lift arms and legs", "Squeeze lower back and glutes", "Hold briefly at top", "Lower back down"],
+                        tip: "Strengthens lower back - don't jerk, lift smoothly"
+                    },
+                    { 
+                        name: "Leg Raises", 
+                        image: "leg-raises",
+                        steps: ["Lie on back, hands under glutes", "Keep legs straight", "Raise legs to 90 degrees", "Lower slowly without touching ground", "Repeat"],
+                        tip: "Press lower back into floor - don't let it arch"
+                    }
+                ]
+            }
+        };
+
+        // State
+        let state = {
+            bodyPart: null,
+            equipment: null,
+            currentRound: 0,
+            totalRounds: 5,
+            selectedExercise: null,
+            workoutPhase: 'work', // 'work' or 'rest'
+            musicEnabled: true
+        };
+
+        // Audio context for beep sounds and music
+        let audioContext;
+        let musicPlaying = false;
+        let workoutMusicNode = null;
+        let workoutMusicGain = null;
+        let speechSynthesis = window.speechSynthesis;
+
+        // DOM Elements
+        const screens = {
+            setup: document.getElementById('setupScreen'),
+            choice: document.getElementById('choiceScreen'),
+            workout: document.getElementById('workoutScreen'),
+            completion: document.getElementById('completionScreen')
+        };
+
+        // Initialize
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const group = this.closest('.input-group');
+                group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                if (this.dataset.body) {
+                    state.bodyPart = this.dataset.body;
+                }
+                if (this.dataset.equipment) {
+                    state.equipment = this.dataset.equipment;
+                }
+            });
+        });
+
+        document.getElementById('startBtn').addEventListener('click', () => {
+            if (!state.bodyPart || !state.equipment) {
+                alert('Please select both body part and equipment options!');
+                return;
+            }
+            startWorkout();
+        });
+
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            location.reload();
+        });
+
+        // Music toggle
+        document.getElementById('musicToggle').addEventListener('click', function() {
+            state.musicEnabled = !state.musicEnabled;
+            this.classList.toggle('muted');
+            this.textContent = state.musicEnabled ? '🔊' : '🔇';
+            
+            if (!state.musicEnabled) {
+                stopWorkoutMusic();
+                speechSynthesis.cancel();
+            } else {
+                // Restart music if in workout/rest phase
+                if (screens.workout.classList.contains('active')) {
+                    if (state.workoutPhase === 'work') {
+                        playWorkoutMusic();
+                    } else {
+                        playRestMusic();
+                    }
+                }
+            }
+        });
+
+        function switchScreen(screenName) {
+            Object.values(screens).forEach(s => s.classList.remove('active'));
+            screens[screenName].classList.add('active');
+        }
+
+        function startWorkout() {
+            state.currentRound = 0;
+            switchScreen('choice');
+            showExerciseChoice();
+        }
+
+        function getExerciseIcon(exerciseName) {
+            // Determine exercise type and return appropriate SVG
+            const name = exerciseName.toLowerCase();
+            
+            // Shoulder exercises
+            if (name.includes('shoulder') || name.includes('lateral') || name.includes('overhead') || name.includes('press')) {
+                return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="20" r="8" fill="#14b8a6"/><rect x="45" y="28" width="10" height="25" fill="#14b8a6"/><line x1="25" y1="35" x2="45" y2="35" stroke="#14b8a6" stroke-width="4" stroke-linecap="round"/><line x1="55" y1="35" x2="75" y2="35" stroke="#14b8a6" stroke-width="4" stroke-linecap="round"/><circle cx="22" cy="35" r="5" fill="#5eead4"/><circle cx="78" cy="35" r="5" fill="#5eead4"/></svg>';
+            }
+            
+            // Bicep/Curl exercises
+            if (name.includes('curl') || name.includes('bicep')) {
+                return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="20" r="8" fill="#14b8a6"/><rect x="45" y="28" width="10" height="30" fill="#14b8a6"/><path d="M 45 45 Q 35 50 35 60 L 35 70" stroke="#14b8a6" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M 55 45 Q 65 50 65 60 L 65 70" stroke="#14b8a6" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="35" cy="70" r="6" fill="#5eead4"/><circle cx="65" cy="70" r="6" fill="#5eead4"/></svg>';
+            }
+            
+            // Tricep exercises
+            if (name.includes('tricep') || name.includes('extension')) {
+                return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="20" r="8" fill="#14b8a6"/><rect x="45" y="28" width="10" height="25" fill="#14b8a6"/><line x1="45" y1="35" x2="35" y2="50" stroke="#14b8a6" stroke-width="5" stroke-linecap="round"/><line x1="55" y1="35" x2="65" y2="50" stroke="#14b8a6" stroke-width="5" stroke-linecap="round"/><line x1="35" y1="50" x2="35" y2="65" stroke="#14b8a6" stroke-width="5" stroke-linecap="round"/><line x1="65" y1="50" x2="65" y2="65" stroke="#14b8a6" stroke-width="5" stroke-linecap="round"/><circle cx="35" cy="67" r="5" fill="#5eead4"/><circle cx="65" cy="67" r="5" fill="#5eead4"/></svg>';
+            }
+            
+            // Chest/Push exercises
+            if (name.includes('bench') || name.includes('chest') || name.includes('press') || name.includes('push') || name.includes('dip')) {
+                return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="25" r="8" fill="#14b8a6"/><ellipse cx="50" cy="45" rx="18" ry="15" fill="#14b8a6"/><line x1="32" y1="40" x2="18" y2="45" stroke="#14b8a6" stroke-width="5" stroke-linecap="round"/><line x1="68" y1="40" x2="82" y2="45" stroke="#14b8a6" stroke-width="5" stroke-linecap="round"/><rect x="18" y="43" width="8" height="4" rx="2" fill="#5eead4"/><rect x="74" y="43" width="8" height="4" rx="2" fill="#5eead4"/></svg>';
+            }
+            
+            // Back exercises
+            if (name.includes('row') || name.includes('pull') || name.includes('lat')) {
+                return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="25" r="8" fill="#14b8a6"/><path d="M 50 33 L 50 55" stroke="#14b8a6" stroke-width="10" fill="none"/><path d="M 50 40 L 30 35 L 25 50" stroke="#14b8a6" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M 50 40 L 70 35 L 75 50" stroke="#14b8a6" stroke-width="5" fill="none" stroke-linecap="round"/><circle cx="25" cy="52" r="5" fill="#5eead4"/><circle cx="75" cy="52" r="5" fill="#5eead4"/></svg>';
+            }
+            
+            // Squat/Leg exercises
+            if (name.includes('squat') || name.includes('leg')) {
+                return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="20" r="8" fill="#14b8a6"/><rect x="45" y="28" width="10" height="25" fill="#14b8a6"/><path d="M 45 53 L 40 75 L 38 85" stroke="#14b8a6" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M 55 53 L 60 75 L 62 85" stroke="#14b8a6" stroke-width="6" fill="none" stroke-linecap="round"/><rect x="35" y="83" width="8" height="5" rx="1" fill="#5eead4"/><rect x="59" y="83" width="8" height="5" rx="1" fill="#5eead4"/></svg>';
+            }
+            
+            // Core/Ab exercises
+            if (name.includes('crunch') || name.includes('sit') || name.includes('ab') || name.includes('core') || name.includes('plank')) {
+                return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="35" cy="35" r="8" fill="#14b8a6"/><path d="M 35 43 Q 45 50 55 50 Q 65 50 70 45" stroke="#14b8a6" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M 40 50 L 35 65 L 30 75" stroke="#14b8a6" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M 65 48 L 70 65 L 75 75" stroke="#14b8a6" stroke-width="6" fill="none" stroke-linecap="round"/></svg>';
+            }
+            
+            // Cardio exercises (burpees, high knees, mountain climbers)
+            if (name.includes('burpee') || name.includes('knee') || name.includes('mountain') || name.includes('jack') || name.includes('cardio') || name.includes('punch')) {
+                return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="20" r="8" fill="#14b8a6"/><rect x="45" y="28" width="10" height="20" fill="#14b8a6"/><path d="M 45 38 L 30 45" stroke="#14b8a6" stroke-width="5" stroke-linecap="round"/><path d="M 55 38 L 70 30" stroke="#14b8a6" stroke-width="5" stroke-linecap="round"/><path d="M 45 48 L 35 70" stroke="#14b8a6" stroke-width="6" stroke-linecap="round"/><path d="M 55 48 L 65 70" stroke="#14b8a6" stroke-width="6" stroke-linecap="round"/><circle cx="30" cy="45" r="4" fill="#5eead4"/><circle cx="70" cy="30" r="4" fill="#5eead4"/></svg>';
+            }
+            
+            // Walk/Carry exercises
+            if (name.includes('walk') || name.includes('farmer') || name.includes('carry')) {
+                return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="20" r="8" fill="#14b8a6"/><rect x="45" y="28" width="10" height="25" fill="#14b8a6"/><line x1="45" y1="38" x2="35" y2="50" stroke="#14b8a6" stroke-width="5" stroke-linecap="round"/><line x1="55" y1="38" x2="65" y2="50" stroke="#14b8a6" stroke-width="5" stroke-linecap="round"/><rect x="32" y="48" width="8" height="12" rx="2" fill="#5eead4"/><rect x="62" y="48" width="8" height="12" rx="2" fill="#5eead4"/><path d="M 45 53 L 40 70 L 38 82" stroke="#14b8a6" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M 55 53 L 60 70 L 62 82" stroke="#14b8a6" stroke-width="6" fill="none" stroke-linecap="round"/></svg>';
+            }
+            
+            // Bridge/Glute exercises
+            if (name.includes('bridge') || name.includes('glute') || name.includes('hip')) {
+                return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="30" cy="40" r="7" fill="#14b8a6"/><path d="M 30 47 Q 50 35 70 47" stroke="#14b8a6" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M 35 50 L 30 65 L 28 75" stroke="#14b8a6" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M 65 50 L 70 65 L 72 75" stroke="#14b8a6" stroke-width="6" fill="none" stroke-linecap="round"/></svg>';
+            }
+            
+            // Superman/Back extension
+            if (name.includes('superman') || name.includes('raise')) {
+                return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="30" cy="45" r="7" fill="#14b8a6"/><ellipse cx="55" cy="50" rx="20" ry="8" fill="#14b8a6"/><line x1="35" y1="47" x2="20" y2="40" stroke="#14b8a6" stroke-width="5" stroke-linecap="round"/><line x1="75" y1="50" x2="85" y2="48" stroke="#14b8a6" stroke-width="5" stroke-linecap="round"/><line x1="75" y1="53" x2="85" y2="60" stroke="#14b8a6" stroke-width="5" stroke-linecap="round"/></svg>';
+            }
+            
+            // Default exercise icon
+            return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="25" r="10" fill="#14b8a6"/><rect x="45" y="35" width="10" height="30" rx="2" fill="#14b8a6"/><line x1="45" y1="45" x2="30" y2="50" stroke="#14b8a6" stroke-width="5" stroke-linecap="round"/><line x1="55" y1="45" x2="70" y2="50" stroke="#14b8a6" stroke-width="5" stroke-linecap="round"/><line x1="45" y1="65" x2="38" y2="85" stroke="#14b8a6" stroke-width="6" stroke-linecap="round"/><line x1="55" y1="65" x2="62" y2="85" stroke="#14b8a6" stroke-width="6" stroke-linecap="round"/></svg>';
+        }
+
+        function getRandomExercises() {
+            const pool = exercises[state.bodyPart][state.equipment];
+            const shuffled = [...pool].sort(() => Math.random() - 0.5);
+            return [shuffled[0], shuffled[1], shuffled[2], shuffled[3]];
+        }
+
+        function showExerciseChoice() {
+            document.getElementById('currentExercise').textContent = state.currentRound + 1;
+            document.getElementById('totalExercises').textContent = state.totalRounds;
+
+            const [ex1, ex2, ex3, ex4] = getRandomExercises();
+            
+            // Use custom icons based on exercise type
+            document.getElementById('img1').src = `data:image/svg+xml,${encodeURIComponent(getExerciseIcon(ex1.name))}`;
+            document.getElementById('img2').src = `data:image/svg+xml,${encodeURIComponent(getExerciseIcon(ex2.name))}`;
+            document.getElementById('img3').src = `data:image/svg+xml,${encodeURIComponent(getExerciseIcon(ex3.name))}`;
+            document.getElementById('img4').src = `data:image/svg+xml,${encodeURIComponent(getExerciseIcon(ex4.name))}`;
+            
+            document.getElementById('name1').textContent = ex1.name;
+            document.getElementById('name2').textContent = ex2.name;
+            document.getElementById('name3').textContent = ex3.name;
+            document.getElementById('name4').textContent = ex4.name;
+
+            // Choice countdown
+            let timeLeft = 8;
+            document.getElementById('choiceTimer').textContent = timeLeft;
+            document.getElementById('countdownBar').style.width = '100%';
+
+            const countdownInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('choiceTimer').textContent = timeLeft;
+                document.getElementById('countdownBar').style.width = `${(timeLeft / 8) * 100}%`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    // Random selection from 4 exercises
+                    const allExercises = [ex1, ex2, ex3, ex4];
+                    const selected = allExercises[Math.floor(Math.random() * 4)];
+                    startExercise(selected);
+                }
+            }, 1000);
+
+            // Manual selection for all 4 choices
+            document.getElementById('choice1').onclick = () => {
+                clearInterval(countdownInterval);
+                startExercise(ex1);
+            };
+            document.getElementById('choice2').onclick = () => {
+                clearInterval(countdownInterval);
+                startExercise(ex2);
+            };
+            document.getElementById('choice3').onclick = () => {
+                clearInterval(countdownInterval);
+                startExercise(ex3);
+            };
+            document.getElementById('choice4').onclick = () => {
+                clearInterval(countdownInterval);
+                startExercise(ex4);
+            };
+        }
+
+        function startExercise(exercise) {
+            state.selectedExercise = exercise;
+            state.workoutPhase = 'work';
+            switchScreen('workout');
+            runWorkoutTimer();
+        }
+
+        function runWorkoutTimer() {
+            const duration = state.workoutPhase === 'work' ? 60 : 60; // 1 min work, 1 min rest
+            let timeLeft = duration;
+
+            document.getElementById('phaseLabel').textContent = state.workoutPhase === 'work' ? 'WORKOUT 💪' : 'REST 😌';
+            document.getElementById('timerNumber').textContent = timeLeft;
+            document.getElementById('currentExerciseName').textContent = state.workoutPhase === 'work' ? state.selectedExercise.name : 'Take a breather!';
+
+            // Show exercise demo during work phase
+            if (state.workoutPhase === 'work') {
+                const demoImg = document.createElement('img');
+                demoImg.src = `data:image/svg+xml,${encodeURIComponent(getExerciseIcon(state.selectedExercise.name))}`;
+                
+                // Create instruction steps
+                const instructionDiv = document.createElement('div');
+                instructionDiv.className = 'instruction-steps';
+                const stepsList = document.createElement('ol');
+                state.selectedExercise.steps.forEach(step => {
+                    const li = document.createElement('li');
+                    li.textContent = step;
+                    stepsList.appendChild(li);
+                });
+                instructionDiv.appendChild(stepsList);
+
+                // Create tip section
+                const tipDiv = document.createElement('div');
+                tipDiv.className = 'exercise-tip';
+                const tipLabel = document.createElement('strong');
+                tipLabel.textContent = '💡 Pro Tip:';
+                const tipText = document.createElement('p');
+                tipText.textContent = state.selectedExercise.tip;
+                tipDiv.appendChild(tipLabel);
+                tipDiv.appendChild(tipText);
+
+                document.getElementById('exerciseDemo').innerHTML = '';
+                document.getElementById('exerciseDemo').appendChild(demoImg);
+                document.getElementById('exerciseDemo').appendChild(instructionDiv);
+                document.getElementById('exerciseDemo').appendChild(tipDiv);
+            } else {
+                document.getElementById('exerciseDemo').innerHTML = '';
+            }
+
+            // Play motivational beep and voice cue
+            if (state.musicEnabled) {
+                playBeep(440, 0.1);
+                
+                // Voice announcement
+                if (state.workoutPhase === 'work') {
+                    speak('Start!');
+                    playWorkoutMusic();
+                } else {
+                    speak('Take rest!');
+                    playRestMusic();
+                }
+            }
+
+            const timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timerNumber').textContent = timeLeft;
+
+                // Countdown beeps in last 3 seconds
+                if (timeLeft <= 3 && timeLeft > 0 && state.musicEnabled) {
+                    playBeep(880, 0.1);
+                    speak(timeLeft.toString());
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    stopWorkoutMusic();
+                    
+                    if (state.workoutPhase === 'work') {
+                        // Switch to rest
+                        state.workoutPhase = 'rest';
+                        runWorkoutTimer();
+                    } else {
+                        // Move to next round
+                        state.currentRound++;
+                        
+                        if (state.currentRound >= state.totalRounds) {
+                            // Workout complete!
+                            switchScreen('completion');
+                            if (state.musicEnabled) {
+                                playBeep(660, 0.5);
+                                speak('Workout complete! Great job!');
+                            }
+                        } else {
+                            // Next exercise choice
+                            switchScreen('choice');
+                            showExerciseChoice();
+                        }
+                    }
+                }
+            }, 1000);
+        }
+
+        function playBeep(frequency, duration) {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function speak(text) {
+            if (!state.musicEnabled) return;
+            
+            // Cancel any ongoing speech
+            speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            speechSynthesis.speak(utterance);
+        }
+
+        function playWorkoutMusic() {
+            if (!state.musicEnabled) return;
+            
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            // Stop any existing music
+            stopWorkoutMusic();
+
+            // Create an upbeat rhythm using oscillators
+            workoutMusicGain = audioContext.createGain();
+            workoutMusicGain.connect(audioContext.destination);
+            workoutMusicGain.gain.value = 0.15;
+
+            // Bass drum pattern
+            const bassDrum = () => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                const now = audioContext.currentTime;
+
+                osc.connect(gain);
+                gain.connect(workoutMusicGain);
+
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.1);
+
+                gain.gain.setValueAtTime(1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+
+                osc.start(now);
+                osc.stop(now + 0.1);
+            };
+
+            // Hi-hat pattern
+            const hiHat = () => {
+                const bufferSize = audioContext.sampleRate * 0.05;
+                const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioContext.sampleRate * 0.01));
+                }
+
+                const noise = audioContext.createBufferSource();
+                const gain = audioContext.createGain();
+                const filter = audioContext.createBiquadFilter();
+
+                noise.buffer = buffer;
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(workoutMusicGain);
+
+                filter.type = 'highpass';
+                filter.frequency.value = 8000;
+                gain.gain.value = 0.3;
+
+                noise.start(audioContext.currentTime);
+            };
+
+            // Synth melody
+            const playMelodyNote = (freq, duration) => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                const now = audioContext.currentTime;
+
+                osc.connect(gain);
+                gain.connect(workoutMusicGain);
+
+                osc.frequency.value = freq;
+                osc.type = 'square';
+
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+
+                osc.start(now);
+                osc.stop(now + duration);
+            };
+
+            // Create a repeating pattern
+            let beatCount = 0;
+            const melodyNotes = [523, 659, 784, 659]; // C5, E5, G5, E5
+            
+            workoutMusicNode = setInterval(() => {
+                if (!state.musicEnabled) {
+                    stopWorkoutMusic();
+                    return;
+                }
+
+                const beat = beatCount % 4;
+                
+                // Bass drum on beats 0 and 2
+                if (beat === 0 || beat === 2) {
+                    bassDrum();
+                }
+                
+                // Hi-hat on every beat
+                hiHat();
+                
+                // Melody every 2 beats
+                if (beat % 2 === 0) {
+                    const noteIndex = Math.floor(beatCount / 2) % melodyNotes.length;
+                    playMelodyNote(melodyNotes[noteIndex], 0.3);
+                }
+                
+                beatCount++;
+            }, 500); // 120 BPM
+        }
+
+        function stopWorkoutMusic() {
+            if (workoutMusicNode) {
+                clearInterval(workoutMusicNode);
+                workoutMusicNode = null;
+            }
+            if (workoutMusicGain && audioContext) {
+                workoutMusicGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            }
+        }
+
+        function playRestMusic() {
+            if (!state.musicEnabled) return;
+            
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            // Stop any existing music
+            stopWorkoutMusic();
+
+            // Create a calming ambient sound
+            workoutMusicGain = audioContext.createGain();
+            workoutMusicGain.connect(audioContext.destination);
+            workoutMusicGain.gain.value = 0.1;
+
+            const playAmbientTone = (freq) => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                const now = audioContext.currentTime;
+
+                osc.connect(gain);
+                gain.connect(workoutMusicGain);
+
+                osc.frequency.value = freq;
+                osc.type = 'sine';
+
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.15, now + 1);
+                gain.gain.linearRampToValueAtTime(0, now + 4);
+
+                osc.start(now);
+                osc.stop(now + 4);
+            };
+
+            // Play calming tones
+            const ambientNotes = [261.63, 329.63, 392.00]; // C4, E4, G4 (C major chord)
+            let noteIndex = 0;
+            
+            workoutMusicNode = setInterval(() => {
+                if (!state.musicEnabled) {
+                    stopWorkoutMusic();
+                    return;
+                }
+                
+                playAmbientTone(ambientNotes[noteIndex % ambientNotes.length]);
+                noteIndex++;
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

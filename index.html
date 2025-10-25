@@ -35,7 +35,7 @@
         }
 
         .logo h1 {
-            font-size: 2.5em;
+            font-size: 3em;
             font-weight: 800;
             background: linear-gradient(135deg, #14b8a6, #5eead4);
             -webkit-background-clip: text;
@@ -47,9 +47,10 @@
 
         .logo-tagline {
             color: #f5f5dc;
-            font-size: 0.9em;
+            font-size: 1.05em;
             margin-top: 5px;
-            opacity: 0.8;
+            opacity: 0.9;
+            font-weight: 500;
         }
 
         /* Motivational Quote */
@@ -442,7 +443,7 @@
         <!-- Logo -->
         <div class="logo">
             <h1>💪 FitQuest</h1>
-            <div class="logo-tagline">Your 10-Minute Transformation</div>
+            <div class="logo-tagline">Your Easy and Quick Transformation</div>
         </div>
 
         <!-- Music Toggle -->
@@ -472,6 +473,14 @@
                     <div class="button-group">
                         <button class="option-btn" data-equipment="dumbbell">Dumbbell</button>
                         <button class="option-btn" data-equipment="bodyweight">Bodyweight</button>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Workout duration?</label>
+                    <div class="button-group">
+                        <button class="option-btn" data-duration="10">10 Minutes</button>
+                        <button class="option-btn" data-duration="20">20 Minutes</button>
                     </div>
                 </div>
 
@@ -908,6 +917,7 @@
 
         // State
         let state = {
+            duration: null,
             bodyPart: null,
             equipment: null,
             currentRound: 0,
@@ -966,6 +976,11 @@
                 group.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
                 this.classList.add('selected');
                 
+                if (this.dataset.duration) {
+                    state.duration = parseInt(this.dataset.duration);
+                    // Set total rounds based on duration (10min = 5 rounds, 20min = 10 rounds)
+                    state.totalRounds = state.duration === 10 ? 5 : 10;
+                }
                 if (this.dataset.body) {
                     state.bodyPart = this.dataset.body;
                 }
@@ -976,8 +991,8 @@
         });
 
         document.getElementById('startBtn').addEventListener('click', () => {
-            if (!state.bodyPart || !state.equipment) {
-                alert('Please select both body part and equipment options!');
+            if (!state.duration || !state.bodyPart || !state.equipment) {
+                alert('Please select workout duration, body part, and equipment options!');
                 return;
             }
             startWorkout();

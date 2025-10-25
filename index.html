@@ -56,7 +56,7 @@
         /* Motivational Quote */
         .motivational-quote {
             text-align: center;
-            margin: 15px 0 25px 0;
+            margin: 5px 0 25px 0;
             padding: 20px;
             background: linear-gradient(135deg, rgba(20, 184, 166, 0.1), rgba(245, 245, 220, 0.05));
             border-left: 4px solid #f5f5dc;
@@ -182,10 +182,44 @@
             margin-bottom: 10px;
         }
 
+        .round-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .round-label {
+            font-size: 1.1em;
+            color: #f5f5dc;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        .round-boxes {
+            display: flex;
+            gap: 6px;
+        }
+
+        .round-box {
+            width: 35px;
+            height: 20px;
+            border: 2px solid #14b8a6;
+            border-radius: 4px;
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .round-box.completed {
+            background: #14b8a6;
+        }
+
         .progress-info {
             color: #f5f5dc;
             opacity: 0.8;
             font-size: 0.9em;
+            margin-top: 5px;
         }
 
         .countdown-bar-container {
@@ -473,6 +507,7 @@
                     <div class="button-group">
                         <button class="option-btn" data-equipment="dumbbell">Dumbbell</button>
                         <button class="option-btn" data-equipment="bodyweight">Bodyweight</button>
+                        <button class="option-btn" data-equipment="combination">Combination</button>
                     </div>
                 </div>
 
@@ -492,7 +527,10 @@
         <div class="screen" id="choiceScreen">
             <div class="choice-header">
                 <h2>Choose Your Exercise</h2>
-                <p class="progress-info">Exercise <span id="currentExercise">1</span> of <span id="totalExercises">5</span></p>
+                <div class="round-indicator">
+                    <span class="round-label">Round <span id="currentRound">1</span> of <span id="totalRounds">5</span></span>
+                    <div class="round-boxes" id="roundBoxes"></div>
+                </div>
                 <div class="countdown-bar-container">
                     <div class="countdown-bar" id="countdownBar"></div>
                 </div>
@@ -545,6 +583,79 @@
     </div>
 
     <script>
+        // Muscle Group Mapping
+        const muscleGroupMap = {
+            "Side Laterals to Front Raise": "shoulders",
+            "Standing Dumbbell Press": "shoulders",
+            "Dumbbell One-Arm Overhead": "shoulders",
+            "Dumbbell Alternate Bicep Curl": "biceps",
+            "EZ-Bar Curl": "biceps",
+            "Standing Dumbbell Triceps Extension": "triceps",
+            "Incline Hammer Curl": "biceps",
+            "Barbell Bench Press": "chest",
+            "Flat Bench Dumbbell Press": "chest",
+            "Incline Dumbbell Press": "chest",
+            "Seated Dumbbell Press": "shoulders",
+            "Arnold Press": "shoulders",
+            "Concentration Curl": "biceps",
+            "Overhead Triceps Extension": "triceps",
+            "Dumbbell Pullover": "chest",
+            "Bent Over Dumbbell Row": "back",
+            "Single Arm Dumbbell Row": "back",
+            "Dumbbell Deadlift": "back",
+            "Dumbbell Shrugs": "back",
+            "Reverse Fly": "back",
+            "Dips Chest": "chest",
+            "Incline Push-Up": "chest",
+            "Decline Push-Up": "chest",
+            "Punches": "shoulders",
+            "Mountain Climbers": "cardio",
+            "Diamond Push-Ups": "triceps",
+            "Pike Push-Ups": "shoulders",
+            "Wide Grip Push-Ups": "chest",
+            "Superman Back Extension": "back",
+            "Prone Y-Raises": "back",
+            "Wall Angels": "back",
+            "Barbell Full Squat": "legs",
+            "Leg Press": "legs",
+            "Lying Leg Curls": "hamstrings",
+            "Standing Barbell Calf Raise": "calves",
+            "Dumbbell Lunges": "legs",
+            "Romanian Deadlift": "hamstrings",
+            "Goblet Squat": "legs",
+            "Bulgarian Split Squat": "legs",
+            "Bodyweight Squats": "legs",
+            "High Knees": "cardio",
+            "Chair Dips": "triceps",
+            "Low Stance Jacks": "cardio",
+            "Jump Squats": "legs",
+            "Wall Sit": "legs",
+            "Glute Bridges": "glutes",
+            "Single Leg Calf Raises": "calves",
+            "Clean and Press": "fullbody",
+            "Dumbbell V-Sit Cross Jab": "abs",
+            "Farmer Walk": "fullbody",
+            "Barbell Glute Bridge": "glutes",
+            "Dumbbell Thrusters": "fullbody",
+            "Renegade Rows": "back",
+            "Dumbbell Snatch": "fullbody",
+            "Burpees": "fullbody",
+            "Toe Crunches": "abs",
+            "Abdominal Crunch": "abs",
+            "Superman": "back",
+            "Leg Raises": "abs",
+            "Plank": "abs",
+            "Bicycle Crunches": "abs",
+            "Flutter Kicks": "abs",
+            "Jumping Jacks": "cardio",
+            "Side Plank": "abs"
+        };
+
+        // Helper function to get muscle group for an exercise
+        function getMuscleGroup(exerciseName) {
+            return muscleGroupMap[exerciseName] || "general";
+        }
+
         // Exercise Database
         const exercises = {
             upper: {
@@ -552,30 +663,35 @@
                     { 
                         name: "Side Laterals to Front Raise", 
                         image: "shoulder-lateral-raise",
+                        muscleGroup: "shoulders",
                         steps: ["Stand with feet shoulder-width apart", "Hold dumbbells at sides with palms facing in", "Raise arms out to sides until parallel to ground", "Lower and then raise arms forward to shoulder height", "Return to starting position"],
                         tip: "Keep elbows slightly bent and core engaged throughout the movement"
                     },
                     { 
                         name: "Standing Dumbbell Press", 
                         image: "shoulder-press",
+                        muscleGroup: "shoulders",
                         steps: ["Stand with feet hip-width apart", "Hold dumbbells at shoulder height, palms forward", "Press weights overhead until arms fully extend", "Lower dumbbells back to shoulder level", "Repeat with controlled motion"],
                         tip: "Don't arch your back - keep your core tight and pressed forward"
                     },
                     { 
                         name: "Dumbbell One-Arm Overhead", 
                         image: "shoulder-overhead",
+                        muscleGroup: "shoulders",
                         steps: ["Stand tall holding one dumbbell", "Start with weight at shoulder height", "Press dumbbell straight overhead", "Fully extend arm at the top", "Lower with control and switch arms"],
                         tip: "Stabilize your core to prevent leaning to one side"
                     },
                     { 
                         name: "Dumbbell Alternate Bicep Curl", 
                         image: "bicep-curl",
+                        muscleGroup: "biceps",
                         steps: ["Stand with dumbbells at sides, palms forward", "Curl one dumbbell up to shoulder", "Keep upper arm stationary", "Lower and repeat with other arm", "Alternate sides continuously"],
                         tip: "No swinging - use only your biceps to lift the weight"
                     },
                     { 
                         name: "EZ-Bar Curl", 
                         image: "ez-curl",
+                        muscleGroup: "biceps",
                         steps: ["Grip EZ-bar with underhand grip", "Stand with feet shoulder-width apart", "Curl bar up toward chest", "Squeeze biceps at the top", "Lower bar with control"],
                         tip: "Keep elbows close to your body throughout the movement"
                     },
@@ -636,8 +752,44 @@
                     { 
                         name: "Dumbbell Pullover", 
                         image: "chest-press",
+                        muscleGroup: "chest",
                         steps: ["Lie perpendicular on bench, only shoulders on pad", "Hold one dumbbell with both hands overhead", "Lower dumbbell behind head in arc", "Pull back over chest", "Keep slight bend in elbows"],
                         tip: "Great for chest and lats - breathe deeply throughout"
+                    },
+                    { 
+                        name: "Bent Over Dumbbell Row", 
+                        image: "row",
+                        muscleGroup: "back",
+                        steps: ["Hinge forward at hips, back straight", "Hold dumbbells with arms extended", "Pull dumbbells to hips, squeeze shoulder blades", "Lower with control", "Keep core tight throughout"],
+                        tip: "Lead with your elbows, not your hands - think of pulling your elbows back"
+                    },
+                    { 
+                        name: "Single Arm Dumbbell Row", 
+                        image: "row",
+                        muscleGroup: "back",
+                        steps: ["Place one knee and hand on bench", "Hold dumbbell in opposite hand", "Pull dumbbell to hip", "Squeeze back at top", "Lower and repeat, then switch sides"],
+                        tip: "Keep your back flat and parallel to the ground"
+                    },
+                    { 
+                        name: "Dumbbell Deadlift", 
+                        image: "squat",
+                        muscleGroup: "back",
+                        steps: ["Stand with dumbbells in front of thighs", "Hinge at hips, slight knee bend", "Lower weights down legs", "Keep back straight", "Stand by squeezing glutes"],
+                        tip: "This works your entire posterior chain - back, glutes, hamstrings"
+                    },
+                    { 
+                        name: "Dumbbell Shrugs", 
+                        image: "shoulder-press",
+                        muscleGroup: "back",
+                        steps: ["Hold dumbbells at sides", "Shrug shoulders straight up", "Hold at top briefly", "Lower with control", "Don't roll shoulders"],
+                        tip: "Builds trap muscles - think 'shoulders to ears'"
+                    },
+                    { 
+                        name: "Reverse Fly", 
+                        image: "shoulder-press",
+                        muscleGroup: "back",
+                        steps: ["Bend forward at hips, slight knee bend", "Hold dumbbells with palms facing", "Raise arms out to sides", "Squeeze shoulder blades together", "Lower with control"],
+                        tip: "Targets rear deltoids and upper back"
                     }
                 ],
                 bodyweight: [
@@ -686,8 +838,30 @@
                     { 
                         name: "Wide Grip Push-Ups", 
                         image: "push-up",
+                        muscleGroup: "chest",
                         steps: ["Hands wider than shoulder width", "Body in straight line", "Lower chest to ground", "Keep core tight", "Push explosively up"],
                         tip: "Wider grip emphasizes chest muscles more than triceps"
+                    },
+                    { 
+                        name: "Superman Back Extension", 
+                        image: "superman",
+                        muscleGroup: "back",
+                        steps: ["Lie face down, arms extended forward", "Simultaneously lift arms, chest and legs", "Squeeze lower back and glutes", "Hold briefly at top", "Lower back down"],
+                        tip: "Strengthens entire back - lift from your back, not your neck"
+                    },
+                    { 
+                        name: "Prone Y-Raises", 
+                        image: "superman",
+                        muscleGroup: "back",
+                        steps: ["Lie face down, arms extended overhead in Y shape", "Lift arms and chest off ground", "Squeeze upper back", "Hold briefly", "Lower with control"],
+                        tip: "Great for upper back and rear shoulders"
+                    },
+                    { 
+                        name: "Wall Angels", 
+                        image: "shoulder-press",
+                        muscleGroup: "back",
+                        steps: ["Stand against wall, arms at 90 degrees", "Press back and arms flat against wall", "Slide arms up overhead", "Maintain contact with wall", "Lower back down"],
+                        tip: "Improves posture and shoulder mobility"
                     }
                 ]
             },
@@ -925,7 +1099,8 @@
             selectedExercise: null,
             workoutPhase: 'work', // 'work' or 'rest'
             musicEnabled: true,
-            usedExercises: [] // Track exercises already done
+            usedExercises: [], // Track exercises already done
+            muscleGroupCount: {} // Track how many times each muscle group has been used
         };
 
         // Motivational quotes
@@ -1031,6 +1206,7 @@
         function startWorkout() {
             state.currentRound = 0;
             state.usedExercises = []; // Reset used exercises for new workout
+            state.muscleGroupCount = {}; // Reset muscle group tracking
             switchScreen('choice');
             showExerciseChoice();
         }
@@ -1099,24 +1275,87 @@
         }
 
         function getRandomExercises() {
-            const pool = exercises[state.bodyPart][state.equipment];
+            let pool;
+            
+            // If combination is selected, merge both dumbbell and bodyweight exercises
+            if (state.equipment === 'combination') {
+                const dumbbellExercises = exercises[state.bodyPart]['dumbbell'];
+                const bodyweightExercises = exercises[state.bodyPart]['bodyweight'];
+                pool = [...dumbbellExercises, ...bodyweightExercises];
+            } else {
+                pool = exercises[state.bodyPart][state.equipment];
+            }
             
             // Filter out exercises that have already been used
-            const availableExercises = pool.filter(ex => 
+            let availableExercises = pool.filter(ex => 
                 !state.usedExercises.some(used => used.name === ex.name)
             );
             
-            // If we've used all exercises, reset the pool (but keep current round's exercise)
-            const exercisesToUse = availableExercises.length >= 4 ? availableExercises : pool;
+            // If we've used all exercises, reset the pool
+            if (availableExercises.length < 4) {
+                availableExercises = [...pool];
+            }
             
-            // Shuffle and get 4 unique exercises
-            const shuffled = [...exercisesToUse].sort(() => Math.random() - 0.5);
+            // Calculate muscle group usage from used exercises
+            state.muscleGroupCount = {};
+            state.usedExercises.forEach(ex => {
+                const muscleGroup = getMuscleGroup(ex.name);
+                state.muscleGroupCount[muscleGroup] = (state.muscleGroupCount[muscleGroup] || 0) + 1;
+            });
+            
+            // Separate exercises by muscle groups that have been used less
+            const sortedByMuscleGroup = availableExercises.sort((a, b) => {
+                const muscleA = getMuscleGroup(a.name);
+                const muscleB = getMuscleGroup(b.name);
+                const countA = state.muscleGroupCount[muscleA] || 0;
+                const countB = state.muscleGroupCount[muscleB] || 0;
+                // Prioritize exercises from muscle groups used less
+                return countA - countB;
+            });
+            
+            // Select 4 exercises trying to diversify muscle groups
+            const selected = [];
+            const usedMuscleGroupsInSelection = new Set();
+            
+            // First pass: try to get 4 different muscle groups
+            for (const ex of sortedByMuscleGroup) {
+                if (selected.length >= 4) break;
+                const muscleGroup = getMuscleGroup(ex.name);
+                if (!usedMuscleGroupsInSelection.has(muscleGroup)) {
+                    selected.push(ex);
+                    usedMuscleGroupsInSelection.add(muscleGroup);
+                }
+            }
+            
+            // Second pass: fill remaining slots if we don't have 4 yet
+            for (const ex of sortedByMuscleGroup) {
+                if (selected.length >= 4) break;
+                if (!selected.includes(ex)) {
+                    selected.push(ex);
+                }
+            }
+            
+            // Shuffle the final selection to make it less predictable
+            const shuffled = selected.sort(() => Math.random() - 0.5);
+            
             return [shuffled[0], shuffled[1], shuffled[2], shuffled[3]];
         }
 
         function showExerciseChoice() {
-            document.getElementById('currentExercise').textContent = state.currentRound + 1;
-            document.getElementById('totalExercises').textContent = state.totalRounds;
+            document.getElementById('currentRound').textContent = state.currentRound + 1;
+            document.getElementById('totalRounds').textContent = state.totalRounds;
+
+            // Render round boxes - include current round as completed
+            const roundBoxesContainer = document.getElementById('roundBoxes');
+            roundBoxesContainer.innerHTML = '';
+            for (let i = 0; i < state.totalRounds; i++) {
+                const box = document.createElement('div');
+                box.className = 'round-box';
+                if (i <= state.currentRound) {
+                    box.classList.add('completed');
+                }
+                roundBoxesContainer.appendChild(box);
+            }
 
             const [ex1, ex2, ex3, ex4] = getRandomExercises();
             
@@ -1181,7 +1420,7 @@
         }
 
         function runWorkoutTimer() {
-            const duration = state.workoutPhase === 'work' ? 60 : 60; // 1 min work, 1 min rest
+            const duration = state.workoutPhase === 'work' ? 45 : 75; // 45 sec work, 75 sec rest
             let timeLeft = duration;
 
             document.getElementById('phaseLabel').textContent = state.workoutPhase === 'work' ? 'WORKOUT 💪' : 'REST 😌';
